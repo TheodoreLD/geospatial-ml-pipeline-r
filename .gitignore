@@ -1,0 +1,17 @@
+﻿# R
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Data / heavy files
+data/
+outputs/
+*.zip
+*.xlsx
+*.tif
+*.tiff
+*.png
+*.cdr
+*.docx
+*.pdf
