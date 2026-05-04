@@ -1,4 +1,4 @@
-# run_pipeline.R
+﻿# run_pipeline.R
 # Master script to run the full analysis pipeline
 
 cat("Starting pipeline...\n")
