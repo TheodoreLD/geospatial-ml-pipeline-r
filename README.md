@@ -1,47 +1,84 @@
-﻿# Geospatial Machine Learning Pipeline in R
+# Geospatial Machine Learning Pipeline in R
 
-> End-to-end geospatial machine learning pipeline integrating remote sensing, biodiversity, and environmental data.
+> End-to-end geospatial machine learning pipeline integrating remote sensing, biodiversity, environmental predictors, and machine learning.
 
-This repository demonstrates a reproducible geospatial machine learning workflow in R. The pipeline operates on large-scale global raster datasets and integrates heterogeneous data sources with different spatial resolutions and formats.
+This repository demonstrates a reproducible geospatial machine learning workflow in R. The pipeline operates on large-scale global raster datasets and integrates heterogeneous data sources with different spatial resolutions, formats, and semantic structures.
 
 The project is designed as a technical portfolio piece, showcasing skills in data engineering, spatial data processing, feature engineering, statistical modeling, and machine learning on complex datasets.
 
+---
+
 ## Technical Overview
 
-- multi-source data integration
-- raster and vector spatial processing
-- species name standardization
-- spatial feature engineering
-- construction of model-ready datasets
-- gradient boosting models with CatBoost
-- spatial cross-validation
-- bootstrap-based model evaluation
-- interpretable machine learning outputs
+This project implements an end-to-end geospatial data science pipeline involving:
+
+- multi-source data integration  
+- raster and vector spatial processing  
+- species name standardization  
+- spatial feature engineering  
+- construction of model-ready datasets  
+- gradient boosting models with CatBoost  
+- monotonic and unconstrained model comparison  
+- spatial cross-validation  
+- bootstrap-based model evaluation  
+- interpretable machine learning outputs  
+
+The pipeline processes large-scale global raster datasets and uses memory-efficient spatial operations with `terra`.
+
+---
 
 ## Data and Feature Engineering
 
-- Raster data: climate, vegetation productivity, canopy height
-- Species distribution datasets: plants and mammals
-- Remote sensing-derived environmental variables
-- Derived metrics: herbivory pressure, richness indices
-- Spatial harmonization to a common grid
-- Raster stacking and alignment
+The workflow integrates multiple data types:
+
+- raster data: climate, vegetation productivity, canopy height  
+- species distribution datasets: plants and mammals  
+- remote sensing-derived environmental variables  
+- mammal trait and distribution data  
+- derived metrics: herbivory pressure, consumption, richness indices  
+
+Feature construction includes:
+
+- spatial harmonization to a common grid  
+- raster stacking and alignment  
+- extraction of predictors per grid cell  
+- construction of relative richness metrics  
+- integration of environmental, vegetation, and biotic predictors  
+- conversion of spatial rasters into model-ready tabular data  
+
+---
 
 ## Machine Learning Task
 
-Target variable: relative trunk spine richness.
+**Target variable:** relative trunk spine richness  
 
-Predictors include climate seasonality, vegetation structure, vegetation productivity, herbivory pressure, mammal richness, and consumption.
+Predictors include:
+
+- climate seasonality  
+- vegetation structure  
+- vegetation productivity  
+- herbivory pressure  
+- mammal richness  
+- modeled plant consumption  
+
+The main multivariate model evaluates climate, vegetation, and herbivory-related predictors together. Additional univariate models evaluate mammal clade richness under constrained and unconstrained assumptions.
+
+---
 
 ## Modeling Workflow
 
-- Train/test split
-- Spatial cross-validation with blockCV to account for spatial autocorrelation
-- Randomized hyperparameter tuning
-- Bootstrap evaluation
-- RMSE and R2 metrics
-- Partial dependence plots
-- Model output persistence
+The modeling workflow includes:
+
+- train/test split  
+- spatial cross-validation with `blockCV` to account for spatial autocorrelation and prevent overly optimistic model performance  
+- randomized hyperparameter tuning  
+- CatBoost regression  
+- bootstrap-based evaluation  
+- RMSE and R² metrics  
+- partial dependence plots  
+- saved predictions, metrics, plots, and model objects  
+
+---
 
 ## Constrained and Unconstrained Modeling
 
@@ -49,63 +86,29 @@ The project implements monotonic CatBoost models for univariate analyses of mamm
 
 Monotonic constraints enforce that predictions follow a consistent directional relationship with predictors. This supports domain-informed machine learning, reduces implausible model behavior, and improves interpretability.
 
-Models are compared with and without constraints. Predictor effects are evaluated using partial dependence curves, bootstrap uncertainty intervals, and standardized slopes of predictor-response relationships.
+Models are compared with and without constraints:
+
+- unconstrained models capture full response shapes  
+- monotonic models enforce directional relationships  
+- predictor effects are evaluated using partial dependence curves  
+- uncertainty is estimated with bootstrap intervals  
+- predictor importance is summarized using standardized slopes  
+
+---
 
 ## Example Outputs
 
-- outputs/holdout_predictions.csv: model predictions and residuals
-- outputs/observed_vs_predicted.png: model performance visualization
-- outputs/pdp_*.png: partial dependence plots
-- trained CatBoost models and performance summaries
+The pipeline generates:
 
-## Repository Structure
-
-- README.md
-- requirements.R
-- renv.lock
-- run_pipeline.R
-- R/config.R
-- scripts/00_standardization.R
-- scripts/01_biogeography_trunk.R
-- scripts/02_mammal_ecoregions.R
-- scripts/03_data_preparation_models.R
-- scripts/04_catboost_models.R
-- data/raw/
-- data/processed/
-- outputs/
+- `outputs/holdout_predictions.csv` — model predictions and residuals  
+- `outputs/observed_vs_predicted.png` — model performance visualization  
+- `outputs/pdp_*.png` — partial dependence plots  
+- trained CatBoost models  
+- performance summaries  
+- processed model-ready datasets  
 
 Raw data and outputs are excluded from version control.
 
-## Run the Pipeline
+---
 
-In R:
-
-source('requirements.R')
-source('run_pipeline.R')
-
-From PowerShell:
-
-& 'C:\Program Files\R\R-4.5.2\bin\Rscript.exe' -e "source('requirements.R'); source('run_pipeline.R')"
-
-## Reproducibility
-
-In R:
-
-renv::restore()
-
-Note: catboost may require manual installation depending on system configuration.
-
-## Technical Skills Demonstrated
-
-- R programming
-- geospatial data engineering
-- raster and vector data processing
-- remote sensing data integration
-- multi-source data harmonization
-- feature engineering
-- machine learning with CatBoost
-- spatial cross-validation
-- bootstrap uncertainty estimation
-- model interpretability
-- reproducible workflows with renv
-- Git/GitHub version control
+## Repository Structure
