@@ -1,152 +1,57 @@
 # Geospatial Machine Learning Pipeline in R
 
-This repository demonstrates an end-to-end data science workflow for geospatial analysis and machine learning in R.
-It is designed as a structured, reproducible pipeline showcasing data preprocessing, feature engineering, and model development on large spatial datasets.
+This repository demonstrates a reproducible geospatial machine learning workflow in R.
+
+The project integrates heterogeneous global datasets, including raster layers, satellite-derived vegetation variables, biodiversity data, mammal trait/distribution data, and derived environmental predictors. The goal of this repository is to showcase technical skills in data engineering, spatial data processing, feature engineering, statistical modeling, and machine learning on complex datasets.
 
 ---
 
-## Overview
+## Technical Overview
 
-The project implements a modular pipeline to analyze global patterns of spiny-trunk species richness and its environmental and biotic drivers.
+This project implements an end-to-end geospatial data science pipeline involving:
 
-Key components include:
+- multi-source data integration
+- raster and vector spatial processing
+- species name standardization
+- spatial feature engineering
+- construction of model-ready datasets
+- gradient boosting models with CatBoost
+- spatial cross-validation
+- bootstrap-based model evaluation
+- interpretable machine learning outputs
 
-* Data standardization and cleaning
-* Spatial data processing (raster + vector)
-* Feature engineering from ecological predictors
-* Machine learning modeling (gradient boosting / CatBoost)
-* Structured pipeline orchestration
+The ecological question provides the case study, but the repository is primarily intended to demonstrate computational, statistical, and machine learning skills.
 
 ---
 
-## Repository Structure
+## Data Sources and Data Types
+
+The workflow combines datasets with different origins, structures, and spatial resolutions.
+
+### Main data types
+
+- Raster data (`.tif`, GeoTIFF)
+- Tabular data (`.csv`, `.xlsx`)
+- Spatial vector data
+- Species distribution data
+- Satellite-derived vegetation products
+- Derived environmental and biotic predictors
+
+### Examples of integrated variables
+
+| Category | Variables / Data |
+|---|---|
+| Climate seasonality | dry-season deciduousness, cold-season deciduousness |
+| Vegetation structure | canopy height, vegetation productivity |
+| Herbivory pressure | mammal richness, modeled plant consumption |
+| Biodiversity metrics | absolute richness, relative richness, clade richness |
+| Spatial units | global grid cells, biomes, ecoregions |
+
+---
+
+## Machine Learning Task
+
+The target variable is:
 
 ```text
-.
-├── README.md
-├── run_pipeline.R
-├── requirements.R
-├── scripts/
-│   ├── 00_standardization.R
-│   ├── 01_biogeography_trunk.R
-│   ├── 02_mammal_ecoregions.R
-│   ├── 03_data_preparation_models.R
-│   └── 04_catboost_models.R
-└── outputs/
-```
-
----
-
-## Setup
-
-Install required R packages:
-
-```r
-source("requirements.R")
-```
-
----
-
-## Run the Pipeline
-
-Execute the full workflow:
-
-```r
-source("run_pipeline.R")
-```
-
----
-
-## Pipeline Description
-
-The analysis is organized as a sequential workflow:
-
-### 0. Species Name Standardization
-
-* Harmonization of taxonomic names across datasets
-
-### 1. Richness Metrics Computation
-
-* Absolute and relative richness of spiny-trunk species
-* Aggregation by biome and ecoregion
-
-### 2. Mammal Ecoregion Extraction
-
-* Identification of ecoregions with highest relative trunk spine richness
-* Stratification by continent
-
-### 3. Data Preparation for Modeling
-
-* Extraction of environmental predictors
-* Integration of herbivory metrics
-* Formatting of model-ready datasets
-
-### 4. Machine Learning Models
-
-Target variable: relative trunk spine richness
-
-* Multivariate model:
-
-  * Vegetation structure
-  * Herbivory pressure
-
-* Univariate models:
-
-  * Monotonic model using mammal clade richness
-  * Unconstrained model using mammal clade richness
-
----
-
-## Data Description
-
-The full dataset includes:
-
-* Spiny-trunk species list (`.xlsx`)
-* Raster layers of species richness (absolute and relative)
-* Mammal clade richness layers
-* Environmental predictor stacks
-
-Example predictors:
-
-| Variable          | Description                     |
-| ----------------- | ------------------------------- |
-| `cold_mean`       | Cold-season deciduousness index |
-| `dry_mean`        | Dry-season deciduousness index  |
-| `height`          | Vegetation height               |
-| `vpi`             | Vegetation Productivity Index   |
-| `consumption`     | Mammal herbivory pressure       |
-| `mammal_richness` | Herbivorous mammal richness     |
-| `trunkrichness`   | Target variable                 |
-
----
-
-## Skills Demonstrated
-
-* R programming for data science
-* Geospatial data processing (`terra`, `sf`)
-* Large-scale raster data handling
-* Data cleaning and harmonization
-* Feature engineering
-* Machine learning (gradient boosting / CatBoost)
-* Pipeline design and modular scripting
-* Reproducible workflows
-
----
-
-## Notes
-
-* Raw data and large files are excluded from this repository
-* The project structure is designed to be scalable and portable
-* This repository focuses on workflow design and computational implementation
-
----
-
-## References (Data Sources)
-
-* Boonman et al. (2024) – Tree species distribution
-* Cai et al. (2023) – Global plant diversity models
-* Dinerstein et al. (2017) – Ecoregion classification
-* Faurby et al. (2020) – Mammal distribution and traits
-* Higgins et al. (2016) – Vegetation functional data
-
----
+relative trunk spine richness
