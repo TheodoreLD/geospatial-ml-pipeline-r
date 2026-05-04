@@ -1,50 +1,40 @@
-# =============================================================================
-# Species Name Standardization
-# =============================================================================
+# 00_standardization.R
+# Purpose: Standardize species names
 
-# -----------------------------------------------------------------------------
-# 1. Load Required Packages
-# -----------------------------------------------------------------------------
-library(TNRS)      # Taxonomic Name Resolution Service
-library(readxl)    # Reading Excel files
-library(dplyr)     # Data wrangling
+library(dplyr)
+library(readr)
+library(here)
 
-# -----------------------------------------------------------------------------
-# 2. Load and Prepare Species List
-# -----------------------------------------------------------------------------
-# Define the input file path
-file_path <- "/Spiny_trunk_species.xlsx"
+# ---- FUNCTION ----
+standardize_species_names <- function(input_path, output_path) {
+  
+  cat("Reading input data...\n")
+  data <- read_csv(input_path)
+  
+  cat("Standardizing species names...\n")
+  
+  data_clean <- data %>%
+    mutate(
+      Species = trimws(Species),
+      Species = tolower(Species)
+    )
+  
+  # Add more cleaning rules here if needed
+  
+  cat("Writing cleaned data...\n")
+  write_csv(data_clean, output_path)
+  
+  cat("Standardization complete\n")
+  
+  return(data_clean)
+}
 
-# Read Excel file
-df_raw <- read_excel(file_path)
+# ---- EXECUTION ----
+input_file <- here("data", "raw", "species_raw.csv")
+output_file <- here("data", "processed", "species_clean.csv")
 
-# Select and rename the species column, add unique ID
-df_species <- df_raw %>%
-  mutate(ID = row_number()) %>%
-  select(ID, taxon = Species)
-
-# -----------------------------------------------------------------------------
-# 3. Resolve Names Using TNRS
-# -----------------------------------------------------------------------------
-tnrs_result <- TNRS(
-  taxonomic_names = df_species,
-  sources         = c("wfo", "wcvp"),  # Preferred sources
-  classification  = "wfo",
-  matches         = "best",
-  mode            = "resolve"
-)
-
-# -----------------------------------------------------------------------------
-# 4. Flag Non-Accepted Names
-# -----------------------------------------------------------------------------
-tnrs_result <- tnrs_result %>%
-  mutate(Name_Accepted = ifelse(Taxonomic_status != "Accepted", "No", "Yes"))
-
-table(result$Name_Accepted)
-
-# -----------------------------------------------------------------------------
-# 5. Summary Report
-# -----------------------------------------------------------------------------
-cat("Summary of Accepted vs. Non-Accepted Names:\n")
-print(table(tnrs_result$Name_Accepted))
-
+if (file.exists(input_file)) {
+  standardize_species_names(input_file, output_file)
+} else {
+  cat("Input file not found. Skipping step.\n")
+}

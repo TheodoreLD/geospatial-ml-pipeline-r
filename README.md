@@ -1,83 +1,152 @@
+# Geospatial Machine Learning Pipeline in R
 
-# README – Global dataset of spiny-trunk species, associated predictors used in gradient boosting models, and scripts
-
-**Source:** *In prep.* Global ecology and evolutionary drivers of spiny-trunk trees (2025).
-
----
-
-## Contents
-
-- **Spiny-trunk species list:** `Spiny_trunk_species.xlsx`
-- **Raster maps of absolute and relative richness** for all species and by syndromes:
-  - `Absolute_Richness_Total.tif`, `Relative_Richness_Total.tif`
-  - `Absolute_Richness_Prickly.tif`, `Relative_Richness_Prickly.tif`
-  - `Absolute_Richness_Thorny.tif`, `Relative_Richness_Thorny.tif`
-- **Mammal clade richness stack:** `Mammal_clade_richness_stack.tif`  
-- **Environmental and herbivory metric predictors + target variable stack:** `Predictors_target_stack.tif`
-- **Analysis scripts**
+This repository demonstrates an end-to-end data science workflow for geospatial analysis and machine learning in R.
+It is designed as a structured, reproducible pipeline showcasing data preprocessing, feature engineering, and model development on large spatial datasets.
 
 ---
 
-## Spiny-trunk Species File
+## Overview
 
-`Spiny_trunk_species.xlsx`
+The project implements a modular pipeline to analyze global patterns of spiny-trunk species richness and its environmental and biotic drivers.
 
-| Column             | Description                                                                 |
-|--------------------|-----------------------------------------------------------------------------|
-| `Species`          | Scientific name                                                             |
-| `Family`           | Plant family                                                                |
-| `Syndrome`         | Trunk defense type: *prickly* or *thorny* (according to Lefebvre et al., 2022)|
-| `Range`            | Presence/absence of species distribution (in Boonman et al., 2024)          |
-| `Native`           | Native continent of origin (according to Plants of the World Online)        |
-| `Source / Picture` | References confirming trunk spines (e.g., floras, images, herbarium sheets) |
+Key components include:
 
----
-
-## Raster Layer Descriptions
-
-From `Predictors_target_stack.tif`
-
-| Layer             | Description                                                                                          |
-|-------------------|------------------------------------------------------------------------------------------------------|
-| `cold_mean`       | Cold-season deciduousness index (derived from Higgins et al., 2016)                                  |
-| `dry_mean`        | Dry-season deciduousness index (derived from Higgins et al., 2016)                                   |
-| `height`          | Vegetation height (Simard et al., 2011 via Higgins et al., 2016)                                     |
-| `vpi`             | Vegetation Productivity Index (Higgins et al., 2016)                                                 |
-| `consumption`     | Present-natural mammal consumption (Pedersen et al., 2023)                                           |
-| `mammal_richness` | Present-natural large terrestrial herbivorous mammal richness (Faurby et al., 2020)                  |
-| `trunkrichness`   | Relative richness of spiny-trunk species (target variable)                                           |
+* Data standardization and cleaning
+* Spatial data processing (raster + vector)
+* Feature engineering from ecological predictors
+* Machine learning modeling (gradient boosting / CatBoost)
+* Structured pipeline orchestration
 
 ---
 
-## Analysis Pipeline Overview
+## Repository Structure
 
-1. **Species name standardization:** Harmonization of species names  
-2. **Calculation of richness metrics:**
-   - Absolute and relative richness of spiny-trunk species
-   - Relative richness by biome and ecoregion  
-3. **Mammal species extraction by ecoregion:**  
-   - Focused on regions with highest trunk spine richness per continent  
-4. **Data preparation for modeling:**
-   - Environmental predictors
-   - Herbivory metrics
-   - Mammal clade richness  
-5. **Machine learning models:**
-   - Multivariate model using vegetation structure and herbivory metrics
-   - Univariate monotonic and unconstrained models using clade-level herbivory predictors
+```text
+.
+├── README.md
+├── run_pipeline.R
+├── requirements.R
+├── scripts/
+│   ├── 00_standardization.R
+│   ├── 01_biogeography_trunk.R
+│   ├── 02_mammal_ecoregions.R
+│   ├── 03_data_preparation_models.R
+│   └── 04_catboost_models.R
+└── outputs/
+```
 
 ---
 
-Original data:
-- Range distribution of trees: Boonman, C. C. F., Serra-Diaz, J. M., Hoeks, S., Guo, W.-Y., Enquist, B. J., Maitner, B., … Svenning, J.-C. (2024). More than 17,000 tree species are at risk from rap-id global change. Nature Communications, 15(1), 166. https://doi.org/10.1038/s41467-023-44321-9.
+## Setup
 
-- Global plant richness: Cai, L., Kreft, H., Taylor, A., Denelle, P., Schrader, J., Essl, F., … Weigelt, P. (2023). Global models and predictions of plant diversity based on advanced machine learning techniques. New Phytologist, 237(4), 1432–1445. https://doi.org/10.1111/nph.18533.
+Install required R packages:
 
-- Biome and ecoregion classification: Dinerstein, E., Olson, D., Joshi, A., Vynne, C., Burgess, N. D., Wikramanayake, E., … Saleem, M. (2017). An Ecoregion-Based Approach to Protecting Half the Terrestrial Realm. BioScience, 67(6), 534–545. https://doi.org/10.1093/biosci/bix014.
+```r
+source("requirements.R")
+```
 
-- Mammal range distribution and trait: Faurby, S., Pedersen, R. Ø., Davis, M., Schowanek, S. D., Jarvie, S., Antonelli, A., & Svenning, J.-C. (2020). MegaPast2Future/PHYLACINE_1.2: PHYLACINE Ver-sion 1.2.1 (Version v1.2.1) [Computer software]. Zenodo. https://doi.org/10.5281/ZENODO.3690867.
+---
 
-- Rasters of vegetation characteristics: Higgins, S. I., Buitenwerf, R., & Moncrieff, G. R. (2016). Defining functional biomes and monitoring their change globally. Global Change Biology, 22(11), 3583–3593. https://doi.org/10.1111/gcb.13367. 
+## Run the Pipeline
 
+Execute the full workflow:
 
+```r
+source("run_pipeline.R")
+```
 
+---
 
+## Pipeline Description
+
+The analysis is organized as a sequential workflow:
+
+### 0. Species Name Standardization
+
+* Harmonization of taxonomic names across datasets
+
+### 1. Richness Metrics Computation
+
+* Absolute and relative richness of spiny-trunk species
+* Aggregation by biome and ecoregion
+
+### 2. Mammal Ecoregion Extraction
+
+* Identification of ecoregions with highest relative trunk spine richness
+* Stratification by continent
+
+### 3. Data Preparation for Modeling
+
+* Extraction of environmental predictors
+* Integration of herbivory metrics
+* Formatting of model-ready datasets
+
+### 4. Machine Learning Models
+
+Target variable: relative trunk spine richness
+
+* Multivariate model:
+
+  * Vegetation structure
+  * Herbivory pressure
+
+* Univariate models:
+
+  * Monotonic model using mammal clade richness
+  * Unconstrained model using mammal clade richness
+
+---
+
+## Data Description
+
+The full dataset includes:
+
+* Spiny-trunk species list (`.xlsx`)
+* Raster layers of species richness (absolute and relative)
+* Mammal clade richness layers
+* Environmental predictor stacks
+
+Example predictors:
+
+| Variable          | Description                     |
+| ----------------- | ------------------------------- |
+| `cold_mean`       | Cold-season deciduousness index |
+| `dry_mean`        | Dry-season deciduousness index  |
+| `height`          | Vegetation height               |
+| `vpi`             | Vegetation Productivity Index   |
+| `consumption`     | Mammal herbivory pressure       |
+| `mammal_richness` | Herbivorous mammal richness     |
+| `trunkrichness`   | Target variable                 |
+
+---
+
+## Skills Demonstrated
+
+* R programming for data science
+* Geospatial data processing (`terra`, `sf`)
+* Large-scale raster data handling
+* Data cleaning and harmonization
+* Feature engineering
+* Machine learning (gradient boosting / CatBoost)
+* Pipeline design and modular scripting
+* Reproducible workflows
+
+---
+
+## Notes
+
+* Raw data and large files are excluded from this repository
+* The project structure is designed to be scalable and portable
+* This repository focuses on workflow design and computational implementation
+
+---
+
+## References (Data Sources)
+
+* Boonman et al. (2024) – Tree species distribution
+* Cai et al. (2023) – Global plant diversity models
+* Dinerstein et al. (2017) – Ecoregion classification
+* Faurby et al. (2020) – Mammal distribution and traits
+* Higgins et al. (2016) – Vegetation functional data
+
+---
