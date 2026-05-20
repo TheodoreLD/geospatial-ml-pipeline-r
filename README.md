@@ -2,9 +2,9 @@
 
 > Reproducible geospatial machine-learning workflow for modelling the global distribution, ecological associations, and evolutionary drivers of spiny-trunk woody plants.
 
-This repository demonstrates an end-to-end geospatial data science pipeline in R. It integrates biodiversity data, global raster layers, mammal distribution data, environmental predictors, spatial feature engineering, gradient-boosted machine learning, spatial cross-validation, bootstrap uncertainty estimation, and interpretable model outputs.
+This repository implements an end-to-end geospatial data science pipeline in R. It integrates biodiversity data, global raster layers, mammal distribution data, environmental predictors, spatial feature engineering, gradient-boosted machine learning, spatial cross-validation, bootstrap uncertainty estimation, and interpretable model outputs.
 
-The project is designed as a technical portfolio piece showing applied expertise in:
+The project is designed as a technical portfolio piece demonstrating applied expertise in:
 
 - geospatial data engineering,
 - raster and vector spatial processing,
@@ -20,11 +20,11 @@ The project is designed as a technical portfolio piece showing applied expertise
 
 ## Project Objective
 
-The goal of the project is to model the global distribution and ecological drivers of woody plant species bearing trunk spines.
+The objective of this project is to model the global distribution and ecological drivers of woody plant species bearing trunk spines.
 
-The analysis focuses on relative spiny-trunk richness, environmental gradients, vegetation structure, climate seasonality, and herbivore-related predictors. The workflow evaluates whether spiny-trunk richness is associated with environmental conditions and mammal herbivory pressure, including associations with specific mammal clades.
+The analysis focuses on the relative richness of spiny-trunk species and evaluates its association with environmental gradients, vegetation structure, climate seasonality, herbivory pressure, and mammal clade richness.
 
-The project combines ecological theory with computational modelling to test whether present and historical mammal communities help explain the contemporary geography of trunk-spine defences.
+The workflow combines ecological theory with computational modelling to test whether present-natural and historical mammal communities help explain the contemporary geography of trunk-spine defences.
 
 ---
 
@@ -37,9 +37,9 @@ The pipeline implements:
 - global raster processing,
 - vector/raster spatial overlay,
 - spatial harmonization to a common grid,
-- construction of relative richness metrics,
+- construction of absolute and relative richness metrics,
 - extraction of environmental and biotic predictors,
-- model-ready tabular data generation,
+- generation of model-ready tabular data,
 - CatBoost gradient-boosted regression,
 - monotonic and unconstrained model comparison,
 - spatial cross-validation using `blockCV`,
@@ -53,10 +53,10 @@ The workflow is implemented in R and uses memory-efficient spatial operations wi
 
 ## Data and Feature Engineering
 
-The workflow integrates multiple data sources:
+The workflow integrates:
 
 - woody plant species with confirmed trunk spines,
-- plant distribution/range data,
+- plant range/distribution data,
 - global woody plant richness estimates,
 - mammal distribution and richness data,
 - herbivory-pressure and consumption estimates,
@@ -76,195 +76,424 @@ Feature construction includes:
 
 ---
 
-## Machine Learning Task
+## Statistical Modelling Framework
 
-The main supervised-learning task is to predict relative spiny-trunk richness from environmental and biotic predictors.
+Let \(i = 1, \dots, n\) index spatial grid cells.
 
-**Response variable**
+The response variable is the relative richness of woody species with trunk spines:
 
 \[
-y_i = \text{relative spiny-trunk richness in grid cell } i
+y_i \in \mathbb{R}_{\geq 0}.
 \]
 
-**Predictors include**
+In the code, this response is stored as `trunkrichness`.
 
-- vegetation productivity,
-- dry-season deciduousness,
-- cold-season deciduousness,
-- vegetation height,
-- mammal richness,
-- modelled plant consumption,
-- mammal clade richness,
-- continental or regional structure.
+Let
 
-The modelling objective is:
+\[
+\mathbf{y}
+=
+(y_1,\dots,y_n)^\top
+\in \mathbb{R}^{n}
+\]
+
+denote the response vector, and let
+
+\[
+\mathbf{X}
+=
+[x_{ij}]
+\in \mathbb{R}^{n \times p}
+\]
+
+denote the multivariate predictor matrix.
+
+The general supervised-learning problem is written as
 
 \[
 y_i = f(\mathbf{x}_i) + \varepsilon_i,
+\qquad
+i = 1,\dots,n,
 \]
 
-where \(\mathbf{x}_i\) is a vector of environmental and herbivore-related predictors, \(f\) is a nonlinear function estimated using gradient-boosted decision trees, and \(\varepsilon_i\) is unexplained ecological and spatial variation.
-
-A detailed mathematical description is available here:
-
-## Mathematical and Statistical Framework
-
-The modelling problem is formulated as a supervised learning task over spatial grid cells. For each grid cell \(i\), the response variable is relative spiny-trunk richness:
+where
 
 \[
-y_i = \frac{s_i}{w_i},
+\mathbf{x}_i^\top
 \]
 
-where \(s_i\) is the number of spiny-trunk woody species in cell \(i\), and \(w_i\) is the estimated total woody plant richness in that cell.
+is the \(i\)-th row of \(\mathbf{X}\), \(f\) is an unknown nonlinear response function, and \(\varepsilon_i\) is a residual term representing unexplained ecological variation, spatial mismatch, measurement uncertainty, and unresolved historical processes.
 
-Each grid cell is associated with a predictor vector:
+---
+
+## Model 1: Multivariate Environmental and Herbivory Model
+
+The first model estimates the nonlinear relationship between relative spiny-trunk richness and a multivariate set of environmental, vegetation-structure, and herbivory-related predictors.
+
+The predictor matrix for Model 1 is
 
 \[
-\mathbf{x}_i =
-(x_{i1}, x_{i2}, \dots, x_{ip})^\top,
+\mathbf{X}^{(1)}
+=
+\begin{bmatrix}
+x^{(1)}_{11} & x^{(1)}_{12} & \cdots & x^{(1)}_{1p} \\
+x^{(1)}_{21} & x^{(1)}_{22} & \cdots & x^{(1)}_{2p} \\
+\vdots       & \vdots       & \ddots & \vdots       \\
+x^{(1)}_{n1} & x^{(1)}_{n2} & \cdots & x^{(1)}_{np}
+\end{bmatrix},
 \]
 
-including vegetation productivity, vegetation height, seasonal deciduousness, mammal richness, modelled plant consumption, and mammal clade richness.
-
-The general modelling objective is:
+with
 
 \[
-y_i = f(\mathbf{x}_i) + \varepsilon_i,
+p = 6.
 \]
 
-where \(f\) is an unknown nonlinear ecological response function and \(\varepsilon_i\) captures unexplained ecological variation, measurement uncertainty, spatial mismatch, and historical contingency.
-
-The CatBoost model estimates \(f\) as an additive ensemble of gradient-boosted decision trees:
+In the implementation, the six predictors are:
 
 \[
-\hat{f}(\mathbf{x}) =
+\mathcal{P}^{(1)}
+=
+\{
+\texttt{vpi\_mean},
+\texttt{cold\_mean},
+\texttt{dry\_mean},
+\texttt{height},
+\texttt{mammal\_richness},
+\texttt{consumption}
+\}.
+\]
+
+The model is
+
+\[
+y_i = f_1(\mathbf{x}^{(1)}_i) + \varepsilon_i.
+\]
+
+The function \(f_1\) is estimated using CatBoost gradient-boosted regression trees. The fitted function is an additive ensemble:
+
+\[
+\hat{f}_1(\mathbf{x})
+=
 \sum_{m=1}^{M}
 \eta T_m(\mathbf{x}),
 \]
 
-where \(T_m\) is the tree fitted at boosting iteration \(m\), \(M\) is the number of boosting iterations, and \(\eta\) is the learning rate.
+where \(T_m\) is the regression tree fitted at boosting iteration \(m\), \(M\) is the number of boosting iterations, and \(\eta\) is the learning rate.
 
-Model error is evaluated using residuals:
+The empirical loss minimized during regression is based on squared prediction error:
 
 \[
-e_i = y_i - \hat{y}_i.
+\mathcal{L}
+=
+\sum_{i=1}^{n}
+\left(
+y_i - \hat{f}_1(\mathbf{x}^{(1)}_i)
+\right)^2.
 \]
 
-Predictive performance is summarized using RMSE:
+Model performance is evaluated using root mean squared error:
 
 \[
-RMSE =
-\sqrt{
+\operatorname{RMSE}
+=
+\left[
 \frac{1}{n}
 \sum_{i=1}^{n}
-(y_i - \hat{y}_i)^2
-},
+\left(
+y_i - \hat{y}_i
+\right)^2
+\right]^{1/2},
 \]
 
 and the coefficient of determination:
 
 \[
-R^2 =
-1 -
+R^2
+=
+1
+-
 \frac{
 \sum_{i=1}^{n}
-(y_i - \hat{y}_i)^2
+\left(
+y_i - \hat{y}_i
+\right)^2
 }{
 \sum_{i=1}^{n}
-(y_i - \bar{y})^2
+\left(
+y_i - \bar{y}
+\right)^2
 }.
 \]
 
-Because nearby grid cells are spatially autocorrelated, the project uses spatial cross-validation. The spatial domain is partitioned into \(K\) spatial folds:
+---
+
+## Spatial Cross-Validation
+
+Because neighbouring grid cells are spatially autocorrelated, random cross-validation may produce overly optimistic estimates of predictive performance.
+
+The spatial domain is partitioned into \(K\) spatially explicit folds:
 
 \[
 \mathcal{D}
 =
 \bigcup_{k=1}^{K}
 \mathcal{D}_k,
+\qquad
+\mathcal{D}_j \cap \mathcal{D}_k = \varnothing
+\quad
+\text{for } j \neq k.
 \]
 
-and each model is trained on \(\mathcal{D}_{-k}\) and evaluated on the withheld spatial fold \(\mathcal{D}_k\).
-
-For mammal-clade analyses, constrained models impose a positive monotonic relationship:
+For fold \(k\), the training set is
 
 \[
-\frac{\partial \hat{f}(c)}{\partial c} \geq 0,
-\]
-
-where \(c\) is mammal clade richness. This allows the analysis to identify mammal groups whose richness is positively associated with relative spiny-trunk richness.
-
-Bootstrap resampling is used to estimate uncertainty. For a metric \(\theta\), the bootstrap distribution is:
-
-\[
-\{\theta_1, \theta_2, \dots, \theta_B\},
-\]
-
-with percentile confidence intervals:
-
-\[
-CI_{95\%}
+\mathcal{D}_{-k}
 =
-[
-Q_{0.025}(\theta_b),
-Q_{0.975}(\theta_b)
-].
+\mathcal{D}
+\setminus
+\mathcal{D}_k,
 \]
 
-Partial dependence functions are used to interpret nonlinear predictor effects:
+and the validation set is \(\mathcal{D}_k\).
+
+For a candidate hyperparameter configuration \(\lambda\), the spatial cross-validation criterion is
+
+\[
+\operatorname{CV}(\lambda)
+=
+\frac{1}{K}
+\sum_{k=1}^{K}
+\operatorname{RMSE}
+\left(
+\mathcal{D}_k,
+\hat{f}_{1,\lambda}^{(-k)}
+\right),
+\]
+
+where \(\hat{f}_{1,\lambda}^{(-k)}\) is fitted on \(\mathcal{D}_{-k}\).
+
+The selected configuration is
+
+\[
+\hat{\lambda}
+=
+\arg\min_{\lambda \in \Lambda}
+\operatorname{CV}(\lambda).
+\]
+
+In the implementation, hyperparameters are sampled randomly and evaluated with spatial cross-validation.
+
+---
+
+## Bootstrap Evaluation
+
+After hyperparameter tuning, Model 1 is evaluated using bootstrap resampling.
+
+For bootstrap replicate \(b = 1,\dots,B\), a resampled training set is drawn:
+
+\[
+\mathcal{D}^{\ast}_b
+=
+\left\{
+(\mathbf{x}^{\ast}_{1b}, y^{\ast}_{1b}),
+\dots,
+(\mathbf{x}^{\ast}_{nb}, y^{\ast}_{nb})
+\right\}.
+\]
+
+A model \(\hat{f}^{\ast}_{1b}\) is fitted on \(\mathcal{D}^{\ast}_b\) and evaluated on the held-out test set.
+
+This gives bootstrap estimates
+
+\[
+\theta^{\ast}_1,\dots,\theta^{\ast}_B,
+\]
+
+where \(\theta\) may be \(R^2\) or RMSE.
+
+The bootstrap mean is
+
+\[
+\bar{\theta}^{\ast}
+=
+\frac{1}{B}
+\sum_{b=1}^{B}
+\theta^{\ast}_b,
+\]
+
+and percentile confidence intervals are estimated as
+
+\[
+\left[
+Q_{0.025}(\theta^{\ast}),
+Q_{0.975}(\theta^{\ast})
+\right].
+\]
+
+---
+
+## Partial Dependence
+
+For Model 1, predictor effects are summarized using partial dependence functions.
+
+For predictor \(j\), the partial dependence function is
 
 \[
 PD_j(z)
 =
 \frac{1}{n}
 \sum_{i=1}^{n}
-\hat{f}(z, \mathbf{x}_{i,-j}),
+\hat{f}_1
+\left(
+z,
+\mathbf{x}_{i,-j}
+\right),
 \]
 
-where \(z\) is a fixed value of predictor \(x_j\), and \(\mathbf{x}_{i,-j}\) denotes all remaining predictors.
+where \(z\) is a fixed value of predictor \(j\), and \(\mathbf{x}_{i,-j}\) denotes all predictors except \(j\).
 
-Together, these components combine geospatial data engineering, statistical learning, spatial validation, uncertainty estimation, and interpretable machine learning.
-
----
-
-## Modelling Workflow
-
-The modelling workflow includes:
-
-- training/test split,
-- spatial cross-validation to reduce spatial leakage,
-- randomized hyperparameter tuning,
-- CatBoost regression,
-- bootstrap-based held-out evaluation,
-- RMSE and R² metrics,
-- partial dependence plots,
-- monotonic clade-specific models,
-- unconstrained clade-specific models,
-- output export for figures and diagnostics.
-
-Spatial cross-validation is important because nearby grid cells are not statistically independent. Using spatial blocks gives a more conservative and realistic estimate of model generalization.
-
----
-
-## Constrained and Unconstrained Mammal-Clade Models
-
-The project implements univariate CatBoost models to evaluate associations between mammal clade richness and relative spiny-trunk richness.
-
-Two model classes are compared:
-
-1. **Unconstrained models**  
-   These capture the full empirical response shape between mammal clade richness and spiny-trunk richness.
-
-2. **Monotonic constrained models**  
-   These enforce a non-decreasing relationship:
+Bootstrap partial dependence intervals are estimated by computing \(PD_j^{\ast b}(z)\) across bootstrap-fitted models:
 
 \[
-\frac{\partial \hat{f}(c)}{\partial c} \geq 0,
+\widehat{PD}_j(z)
+=
+\frac{1}{B}
+\sum_{b=1}^{B}
+PD_j^{\ast b}(z),
 \]
 
-where \(c\) is mammal clade richness.
+with uncertainty summarized by empirical quantiles across bootstrap replicates.
 
-This design helps separate exploratory nonlinear pattern detection from directional, hypothesis-driven modelling. Standardized slopes from the constrained models are used to compare the strength of positive associations among clades and continents.
+---
+
+## Model 2: Monotonic Mammal-Clade Models
+
+The second modelling component evaluates positive associations between mammal clade richness and relative spiny-trunk richness.
+
+Let
+
+\[
+r \in \mathcal{R}
+\]
+
+index broad geographic regions, and let
+
+\[
+c \in \mathcal{C}
+\]
+
+index mammal clades.
+
+For each region-clade pair \((r,c)\), the model uses one predictor:
+
+\[
+z^{(c,r)}_i
+\in \mathbb{R}_{\geq 0},
+\]
+
+representing the richness of mammal clade \(c\) in grid cell \(i\) within region \(r\).
+
+The univariate model is
+
+\[
+y^{(r)}_i
+=
+f^{+}_{c,r}
+\left(
+z^{(c,r)}_i
+\right)
++
+\varepsilon^{(r)}_i.
+\]
+
+The superscript \(+\) indicates that the fitted function is constrained to be monotonic non-decreasing:
+
+\[
+\frac{\partial f^{+}_{c,r}(z)}{\partial z}
+\geq
+0
+\qquad
+\forall z.
+\]
+
+This constraint represents the directional biological hypothesis that, if a mammal clade is a plausible positive driver of spiny-trunk richness, increasing clade richness should not reduce predicted spiny-trunk richness.
+
+For each fitted monotonic curve, the predictor is standardized as
+
+\[
+\tilde{z}^{(c,r)}_i
+=
+\frac{
+z^{(c,r)}_i
+-
+\mu_{c,r}
+}{
+\sigma_{c,r}
+},
+\]
+
+and the modelled relationship is summarized using the slope
+
+\[
+\beta_{c,r}
+=
+\frac{
+\operatorname{Cov}
+\left(
+\tilde{z}^{(c,r)},
+\hat{f}^{+}_{c,r}(z^{(c,r)})
+\right)
+}{
+\operatorname{Var}
+\left(
+\tilde{z}^{(c,r)}
+\right)
+}.
+\]
+
+Larger positive values of \(\beta_{c,r}\) indicate stronger positive association between mammal clade richness and relative spiny-trunk richness.
+
+---
+
+## Model 3: Unconstrained Mammal-Clade Models
+
+The third modelling component uses the same region-by-clade structure but removes the monotonic constraint.
+
+For each region-clade pair \((r,c)\), the model is
+
+\[
+y^{(r)}_i
+=
+g_{c,r}
+\left(
+z^{(c,r)}_i
+\right)
++
+\varepsilon^{(r)}_i,
+\]
+
+where \(g_{c,r}\) is estimated without imposing
+
+\[
+\frac{\partial g_{c,r}(z)}{\partial z}
+\geq
+0.
+\]
+
+These unconstrained models are used to visualize the empirical form of each clade-richness relationship without enforcing a directional assumption.
+
+Together, Models 2 and 3 separate two questions:
+
+\[
+\text{directional association}
+\quad
+\text{vs.}
+\quad
+\text{empirical response shape}.
+\]
+
+Model 2 asks whether a clade is positively associated with spiny-trunk richness under a monotonic hypothesis. Model 3 asks whether the observed relationship is nonlinear, saturating, threshold-like, or non-monotonic.
 
 ---
 
