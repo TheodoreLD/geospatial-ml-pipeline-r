@@ -1,114 +1,205 @@
 # Geospatial Machine Learning Pipeline in R
 
-> End-to-end geospatial machine learning pipeline integrating remote sensing, biodiversity, environmental predictors, and machine learning.
+> Reproducible geospatial machine-learning workflow for modelling the global distribution, ecological associations, and evolutionary drivers of spiny-trunk woody plants.
 
-This repository demonstrates a reproducible geospatial machine learning workflow in R. The pipeline operates on large-scale global raster datasets and integrates heterogeneous data sources with different spatial resolutions, formats, and semantic structures.
+This repository demonstrates an end-to-end geospatial data science pipeline in R. It integrates biodiversity data, global raster layers, mammal distribution data, environmental predictors, spatial feature engineering, gradient-boosted machine learning, spatial cross-validation, bootstrap uncertainty estimation, and interpretable model outputs.
 
-The project is designed as a technical portfolio piece, showcasing skills in data engineering, spatial data processing, feature engineering, statistical modeling, and machine learning on complex datasets.
+The project is designed as a technical portfolio piece showing applied expertise in:
+
+- geospatial data engineering,
+- raster and vector spatial processing,
+- biodiversity informatics,
+- statistical modelling,
+- machine learning,
+- spatial cross-validation,
+- uncertainty quantification,
+- interpretable machine learning,
+- reproducible scientific computing.
+
+---
+
+## Project Objective
+
+The goal of the project is to model the global distribution and ecological drivers of woody plant species bearing trunk spines.
+
+The analysis focuses on relative spiny-trunk richness, environmental gradients, vegetation structure, climate seasonality, and herbivore-related predictors. The workflow evaluates whether spiny-trunk richness is associated with environmental conditions and mammal herbivory pressure, including associations with specific mammal clades.
+
+The project combines ecological theory with computational modelling to test whether present and historical mammal communities help explain the contemporary geography of trunk-spine defences.
 
 ---
 
 ## Technical Overview
 
-This project implements an end-to-end geospatial data science pipeline involving:
+The pipeline implements:
 
-- multi-source data integration  
-- raster and vector spatial processing  
-- species name standardization  
-- spatial feature engineering  
-- construction of model-ready datasets  
-- gradient boosting models with CatBoost  
-- monotonic and unconstrained model comparison  
-- spatial cross-validation  
-- bootstrap-based model evaluation  
-- interpretable machine learning outputs  
+- multi-source data integration,
+- species-name standardization,
+- global raster processing,
+- vector/raster spatial overlay,
+- spatial harmonization to a common grid,
+- construction of relative richness metrics,
+- extraction of environmental and biotic predictors,
+- model-ready tabular data generation,
+- CatBoost gradient-boosted regression,
+- monotonic and unconstrained model comparison,
+- spatial cross-validation using `blockCV`,
+- bootstrap-based uncertainty estimation,
+- partial dependence analysis,
+- curated GitHub-ready figures and methodological documentation.
 
-The pipeline processes large-scale global raster datasets and uses memory-efficient spatial operations with `terra`.
+The workflow is implemented in R and uses memory-efficient spatial operations with `terra`.
 
 ---
 
 ## Data and Feature Engineering
 
-The workflow integrates multiple data types:
+The workflow integrates multiple data sources:
 
-- raster data: climate, vegetation productivity, canopy height  
-- species distribution datasets: plants and mammals  
-- remote sensing-derived environmental variables  
-- mammal trait and distribution data  
-- derived metrics: herbivory pressure, consumption, richness indices  
+- woody plant species with confirmed trunk spines,
+- plant distribution/range data,
+- global woody plant richness estimates,
+- mammal distribution and richness data,
+- herbivory-pressure and consumption estimates,
+- climate and vegetation predictors,
+- biome and ecoregion boundaries,
+- remote-sensing-derived vegetation structure.
 
 Feature construction includes:
 
-- spatial harmonization to a common grid  
-- raster stacking and alignment  
-- extraction of predictors per grid cell  
-- construction of relative richness metrics  
-- integration of environmental, vegetation, and biotic predictors  
-- conversion of spatial rasters into model-ready tabular data  
+- spatial harmonization to a common global grid,
+- raster stacking and alignment,
+- extraction of predictors by grid cell,
+- construction of absolute and relative richness layers,
+- biome and ecoregion summarization,
+- integration of environmental, vegetation, and herbivore-related predictors,
+- conversion of geospatial layers into model-ready tabular data.
 
 ---
 
 ## Machine Learning Task
 
-**Target variable:** relative trunk spine richness  
+The main supervised-learning task is to predict relative spiny-trunk richness from environmental and biotic predictors.
 
-Predictors include:
+**Response variable**
 
-- climate seasonality  
-- vegetation structure  
-- vegetation productivity  
-- herbivory pressure  
-- mammal richness  
-- modeled plant consumption  
+\[
+y_i = \text{relative spiny-trunk richness in grid cell } i
+\]
 
-The main multivariate model evaluates climate, vegetation, and herbivory-related predictors together. Additional univariate models evaluate mammal clade richness under constrained and unconstrained assumptions.
+**Predictors include**
 
----
+- vegetation productivity,
+- dry-season deciduousness,
+- cold-season deciduousness,
+- vegetation height,
+- mammal richness,
+- modelled plant consumption,
+- mammal clade richness,
+- continental or regional structure.
 
-## Modeling Workflow
+The modelling objective is:
 
-The modeling workflow includes:
+\[
+y_i = f(\mathbf{x}_i) + \varepsilon_i,
+\]
 
-- train/test split  
-- spatial cross-validation with `blockCV` to account for spatial autocorrelation and prevent overly optimistic model performance  
-- randomized hyperparameter tuning  
-- CatBoost regression  
-- bootstrap-based evaluation  
-- RMSE and R² metrics  
-- partial dependence plots  
-- saved predictions, metrics, plots, and model objects  
+where \(\mathbf{x}_i\) is a vector of environmental and herbivore-related predictors, \(f\) is a nonlinear function estimated using gradient-boosted decision trees, and \(\varepsilon_i\) is unexplained ecological and spatial variation.
 
----
+A detailed mathematical description is available here:
 
-## Constrained and Unconstrained Modeling
-
-The project implements monotonic CatBoost models for univariate analyses of mammal clade richness.
-
-Monotonic constraints enforce that predictions follow a consistent directional relationship with predictors. This supports domain-informed machine learning, reduces implausible model behavior, and improves interpretability.
-
-Models are compared with and without constraints:
-
-- unconstrained models capture full response shapes  
-- monotonic models enforce directional relationships  
-- predictor effects are evaluated using partial dependence curves  
-- uncertainty is estimated with bootstrap intervals  
-- predictor importance is summarized using standardized slopes  
+[`docs/methods/mathematical_framework.md`](docs/methods/mathematical_framework.md)
 
 ---
 
-## Example Outputs
+## Modelling Workflow
 
-The pipeline generates:
+The modelling workflow includes:
 
-- `outputs/holdout_predictions.csv` — model predictions and residuals  
-- `outputs/observed_vs_predicted.png` — model performance visualization  
-- `outputs/pdp_*.png` — partial dependence plots  
-- trained CatBoost models  
-- performance summaries  
-- processed model-ready datasets  
+- training/test split,
+- spatial cross-validation to reduce spatial leakage,
+- randomized hyperparameter tuning,
+- CatBoost regression,
+- bootstrap-based held-out evaluation,
+- RMSE and R² metrics,
+- partial dependence plots,
+- monotonic clade-specific models,
+- unconstrained clade-specific models,
+- output export for figures and diagnostics.
 
-Raw data and outputs are excluded from version control.
+Spatial cross-validation is important because nearby grid cells are not statistically independent. Using spatial blocks gives a more conservative and realistic estimate of model generalization.
+
+---
+
+## Constrained and Unconstrained Mammal-Clade Models
+
+The project implements univariate CatBoost models to evaluate associations between mammal clade richness and relative spiny-trunk richness.
+
+Two model classes are compared:
+
+1. **Unconstrained models**  
+   These capture the full empirical response shape between mammal clade richness and spiny-trunk richness.
+
+2. **Monotonic constrained models**  
+   These enforce a non-decreasing relationship:
+
+\[
+\frac{\partial \hat{f}(c)}{\partial c} \geq 0,
+\]
+
+where \(c\) is mammal clade richness.
+
+This design helps separate exploratory nonlinear pattern detection from directional, hypothesis-driven modelling. Standardized slopes from the constrained models are used to compare the strength of positive associations among clades and continents.
+
+---
+
+## Results Snapshot
+
+Selected lightweight outputs are included in `docs/figures/` so that the project can be inspected directly from GitHub without requiring users to run the full geospatial pipeline.
+
+### Absolute richness of spiny-trunk woody species
+
+![Absolute richness of spiny-trunk woody species](docs/figures/01_absolute_richness.png)
+
+### Relative richness across biomes and ecoregions
+
+![Relative richness across biomes and ecoregions](docs/figures/02_relative_richness_biome_ecoregion.png)
+
+### Environmental and herbivory model
+
+![Environmental model](docs/figures/03_environmental_model.png)
+
+### Mammal-clade association model
+
+![Mammal clade model](docs/figures/04_mammal_clade_model.png)
 
 ---
 
 ## Repository Structure
+
+```text
+.
+├── R/
+│   └── config.R
+├── scripts/
+│   ├── 00_standardization.R
+│   ├── 01_biogeography_trunk.R
+│   ├── 02_mammal_ecoregions.R
+│   ├── 03_data_preparation_models.R
+│   └── 04_catboost_models.R
+├── docs/
+│   ├── figures/
+│   │   ├── 01_absolute_richness.png
+│   │   ├── 02_relative_richness_biome_ecoregion.png
+│   │   ├── 03_environmental_model.png
+│   │   └── 04_mammal_clade_model.png
+│   ├── methods/
+│   │   └── mathematical_framework.md
+│   └── tables/
+├── outputs/
+│   └── ignored generated outputs
+├── data/
+│   └── ignored raw and intermediate data
+├── renv.lock
+├── requirements.R
+├── run_pipeline.R
+└── README.md

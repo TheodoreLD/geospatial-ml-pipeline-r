@@ -1,17 +1,55 @@
-﻿# R
+﻿# R session/user files
 .Rhistory
 .RData
 .Ruserdata
 .Rproj.user/
 
+# renv local/private state
+renv/library/
+renv/staging/
+renv/python/
+renv/sandbox/
+
 # Data / heavy files
 data/
 outputs/
-*.zip
-*.xlsx
+
+# Heavy geospatial/data formats
 *.tif
 *.tiff
-*.png
+*.gpkg
+*.shp
+*.shx
+*.dbf
+*.prj
+*.rds
+*.Rds
+*.RData
+*.xlsx
+*.xls
+
+# Documents / archives / temporary files
+*.zip
 *.cdr
 *.docx
+Rplots.pdf
+
+# Ignore generated figures by default
+*.png
+*.jpg
+*.jpeg
 *.pdf
+*.html
+
+# But allow curated GitHub documentation assets
+!docs/
+!docs/figures/
+!docs/figures/*.png
+!docs/figures/*.jpg
+!docs/figures/*.jpeg
+!docs/figures/*.pdf
+!docs/tables/
+!docs/tables/*.csv
+!docs/methods/
+!docs/methods/*.md
+!docs/methods/*.qmd
