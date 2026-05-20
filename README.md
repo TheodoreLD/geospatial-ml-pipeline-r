@@ -107,7 +107,123 @@ where \(\mathbf{x}_i\) is a vector of environmental and herbivore-related predic
 
 A detailed mathematical description is available here:
 
-[`docs/methods/mathematical_framework.md`](docs/methods/mathematical_framework.md)
+## Mathematical and Statistical Framework
+
+The modelling problem is formulated as a supervised learning task over spatial grid cells. For each grid cell \(i\), the response variable is relative spiny-trunk richness:
+
+\[
+y_i = \frac{s_i}{w_i},
+\]
+
+where \(s_i\) is the number of spiny-trunk woody species in cell \(i\), and \(w_i\) is the estimated total woody plant richness in that cell.
+
+Each grid cell is associated with a predictor vector:
+
+\[
+\mathbf{x}_i =
+(x_{i1}, x_{i2}, \dots, x_{ip})^\top,
+\]
+
+including vegetation productivity, vegetation height, seasonal deciduousness, mammal richness, modelled plant consumption, and mammal clade richness.
+
+The general modelling objective is:
+
+\[
+y_i = f(\mathbf{x}_i) + \varepsilon_i,
+\]
+
+where \(f\) is an unknown nonlinear ecological response function and \(\varepsilon_i\) captures unexplained ecological variation, measurement uncertainty, spatial mismatch, and historical contingency.
+
+The CatBoost model estimates \(f\) as an additive ensemble of gradient-boosted decision trees:
+
+\[
+\hat{f}(\mathbf{x}) =
+\sum_{m=1}^{M}
+\eta T_m(\mathbf{x}),
+\]
+
+where \(T_m\) is the tree fitted at boosting iteration \(m\), \(M\) is the number of boosting iterations, and \(\eta\) is the learning rate.
+
+Model error is evaluated using residuals:
+
+\[
+e_i = y_i - \hat{y}_i.
+\]
+
+Predictive performance is summarized using RMSE:
+
+\[
+RMSE =
+\sqrt{
+\frac{1}{n}
+\sum_{i=1}^{n}
+(y_i - \hat{y}_i)^2
+},
+\]
+
+and the coefficient of determination:
+
+\[
+R^2 =
+1 -
+\frac{
+\sum_{i=1}^{n}
+(y_i - \hat{y}_i)^2
+}{
+\sum_{i=1}^{n}
+(y_i - \bar{y})^2
+}.
+\]
+
+Because nearby grid cells are spatially autocorrelated, the project uses spatial cross-validation. The spatial domain is partitioned into \(K\) spatial folds:
+
+\[
+\mathcal{D}
+=
+\bigcup_{k=1}^{K}
+\mathcal{D}_k,
+\]
+
+and each model is trained on \(\mathcal{D}_{-k}\) and evaluated on the withheld spatial fold \(\mathcal{D}_k\).
+
+For mammal-clade analyses, constrained models impose a positive monotonic relationship:
+
+\[
+\frac{\partial \hat{f}(c)}{\partial c} \geq 0,
+\]
+
+where \(c\) is mammal clade richness. This allows the analysis to identify mammal groups whose richness is positively associated with relative spiny-trunk richness.
+
+Bootstrap resampling is used to estimate uncertainty. For a metric \(\theta\), the bootstrap distribution is:
+
+\[
+\{\theta_1, \theta_2, \dots, \theta_B\},
+\]
+
+with percentile confidence intervals:
+
+\[
+CI_{95\%}
+=
+[
+Q_{0.025}(\theta_b),
+Q_{0.975}(\theta_b)
+].
+\]
+
+Partial dependence functions are used to interpret nonlinear predictor effects:
+
+\[
+PD_j(z)
+=
+\frac{1}{n}
+\sum_{i=1}^{n}
+\hat{f}(z, \mathbf{x}_{i,-j}),
+\]
+
+where \(z\) is a fixed value of predictor \(x_j\), and \(\mathbf{x}_{i,-j}\) denotes all remaining predictors.
+
+Together, these components combine geospatial data engineering, statistical learning, spatial validation, uncertainty estimation, and interpretable machine learning.
 
 ---
 
