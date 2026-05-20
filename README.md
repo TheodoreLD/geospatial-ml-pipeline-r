@@ -2,7 +2,9 @@
 
 > Reproducible geospatial machine-learning workflow for modelling the global distribution, ecological associations, and evolutionary drivers of spiny-trunk woody plants.
 
-This repository implements an end-to-end geospatial data science pipeline in R. It integrates biodiversity data, global raster layers, mammal distribution data, environmental predictors, spatial feature engineering, gradient-boosted machine learning, spatial cross-validation, bootstrap uncertainty estimation, and interpretable model outputs.
+This repository implements an end-to-end geospatial data science pipeline in R.
+
+It integrates biodiversity data, global raster layers, mammal distribution data, environmental predictors, spatial feature engineering, gradient-boosted machine learning, spatial cross-validation, bootstrap uncertainty estimation, and interpretable model outputs.
 
 The project is designed as a technical portfolio piece demonstrating applied expertise in:
 
